@@ -1,7 +1,7 @@
 [project]
 name = "dr-ds"
 version = "0.1.0"
-description = "Add your description here"
+description = "Datascience helpers."
 readme = "README.md"
 authors = [
     { name = "Danielle Rothermel", email = "danielle.rothermel@gmail.com" }
