@@ -1,7 +1,7 @@
 [project]
 name = "dr-ds"
 version = "0.1.1"
-description = "Small, typed data science helpers for serialization and dataframe-oriented record normalization."
+description = "Small, typed data science helpers for serialization, atomic file writes, and dataframe-oriented record normalization."
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
@@ -20,12 +20,14 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering",
     "Typing :: Typed",
 ]
 dependencies = [
     "pandas>=2.3.3",
+    "pyarrow>=21.0.0",
     "srsly>=2.5.3",
 ]
 

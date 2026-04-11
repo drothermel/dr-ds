@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 import json
-import os
-import tempfile
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 import srsly
@@ -78,20 +75,3 @@ def parse_jsonish(value: Any) -> Any:
         return srsly.json_loads(stripped)
     except Exception:
         return value
-
-
-def dump_json_atomic(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(
-        mode="w",
-        encoding="utf-8",
-        dir=path.parent,
-        prefix=path.name,
-        suffix=".tmp",
-        delete=False,
-    ) as handle:
-        handle.write(srsly.json_dumps(payload, indent=2, sort_keys=True))
-        handle.flush()
-        os.fsync(handle.fileno())
-        tmp_name = handle.name
-    os.replace(tmp_name, path)
