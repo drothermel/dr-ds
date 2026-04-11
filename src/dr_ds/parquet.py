@@ -44,8 +44,11 @@ def parquet_frame_to_records(
     for record in records:
         row: dict[str, Any] = {}
         for key, value in record.items():
-            if key in json_columns and value is not None:
-                row[key] = parse_jsonish(value)
+            if key in json_columns:
+                if value is None or pd.isna(value):
+                    row[key] = None
+                else:
+                    row[key] = parse_jsonish(value)
             else:
                 row[key] = value
         normalized.append(row)

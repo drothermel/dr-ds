@@ -31,22 +31,46 @@ def test_to_jsonable_normalizes_nested_values() -> None:
 
 
 def test_convert_large_ints_respects_max_int() -> None:
-    value = {"small": 3, "large": 10, "nested": [1, 20]}
+    value = {
+        "small": 3,
+        "large": 10,
+        "nested": [1, 20],
+        "tuple": (4, 30),
+        "set": {5, 40},
+    }
 
     result = convert_large_ints(value, max_int=9)
 
-    assert result == {"small": 3, "large": 10.0, "nested": [1, 20.0]}
+    assert result == {
+        "small": 3,
+        "large": 10.0,
+        "nested": [1, 20.0],
+        "tuple": (4, 30.0),
+        "set": {5, 40.0},
+    }
 
 
 def test_parse_jsonish_parses_json_like_strings_only() -> None:
     assert parse_jsonish('{"a": 1}') == {"a": 1}
     assert parse_jsonish("[1, 2]") == [1, 2]
+    assert parse_jsonish("123") == 123
+    assert parse_jsonish("true") is True
+    assert parse_jsonish("null") is None
     assert parse_jsonish("plain-text") == "plain-text"
 
 
 def test_serialize_timestamp_handles_datetime_and_none() -> None:
-    assert serialize_timestamp(datetime(2024, 1, 2, 3, 4, tzinfo=UTC))
+    expected = datetime(2024, 1, 2, 3, 4, tzinfo=UTC).isoformat()
+    assert (
+        serialize_timestamp(datetime(2024, 1, 2, 3, 4, tzinfo=UTC)) == expected
+    )
     assert serialize_timestamp(None) is None
+
+
+def test_to_jsonable_handles_mixed_type_sets_deterministically() -> None:
+    result = to_jsonable({1, "two", (3, 4)})
+
+    assert result == ["two", 1, [3, 4]]
 
 
 def test_dump_json_atomic_writes_json_file(tmp_path: Path) -> None:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import tempfile
 from datetime import datetime, timezone
@@ -33,7 +34,14 @@ def to_jsonable(value: Any) -> Any:
     if isinstance(value, tuple):
         return [to_jsonable(nested) for nested in value]
     if isinstance(value, set):
-        return sorted(to_jsonable(nested) for nested in value)
+        items = [to_jsonable(nested) for nested in value]
+        try:
+            return sorted(items)
+        except TypeError:
+            return sorted(
+                items,
+                key=lambda item: json.dumps(item, sort_keys=True),
+            )
     return value
 
 
@@ -47,6 +55,14 @@ def convert_large_ints(value: Any, *, max_int: int = DEFAULT_MAX_INT) -> Any:
         return [
             convert_large_ints(nested, max_int=max_int) for nested in value
         ]
+    if isinstance(value, tuple):
+        return tuple(
+            convert_large_ints(nested, max_int=max_int) for nested in value
+        )
+    if isinstance(value, set):
+        return {
+            convert_large_ints(nested, max_int=max_int) for nested in value
+        }
     if isinstance(value, int) and abs(value) > max_int:
         return float(value)
     return value
@@ -58,13 +74,10 @@ def parse_jsonish(value: Any) -> Any:
     stripped = value.strip()
     if stripped == "":
         return value
-    if not (
-        stripped.startswith("{")
-        or stripped.startswith("[")
-        or stripped.startswith('"')
-    ):
+    try:
+        return srsly.json_loads(stripped)
+    except Exception:
         return value
-    return srsly.json_loads(stripped)
 
 
 def dump_json_atomic(path: Path, payload: dict[str, Any]) -> None:

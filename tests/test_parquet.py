@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import math
+
+import pandas as pd
+
 from dr_ds.parquet import parquet_frame_to_records, records_to_parquet_frame
 
 
@@ -36,3 +40,11 @@ def test_records_to_parquet_frame_respects_custom_max_int() -> None:
     assert frame.to_dict(orient="records") == [
         {"value": 10.0, "nested": '{"count": 11.0}'}
     ]
+
+
+def test_parquet_frame_to_records_normalizes_nan_json_values_to_none() -> None:
+    frame = pd.DataFrame([{"metrics": math.nan, "status": "pending"}])
+
+    restored = parquet_frame_to_records(frame, json_columns={"metrics"})
+
+    assert restored == [{"metrics": None, "status": "pending"}]
