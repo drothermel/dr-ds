@@ -1,13 +1,13 @@
 [project]
 name = "dr-ds"
-version = "0.1.0"
+version = "0.1.1"
 description = "Small, typed data science helpers for serialization and dataframe-oriented record normalization."
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
     { name = "Danielle Rothermel", email = "danielle.rothermel@gmail.com" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 keywords = [
     "data-science",
     "serialization",
