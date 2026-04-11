@@ -1,6 +1,15 @@
 # dr-ds
 
-General data science helpers for small data-wrangling and serialization tasks.
+Small, typed data science helpers for serialization and dataframe-oriented
+record normalization.
+
+## Install
+
+```bash
+uv add dr-ds
+```
+
+`dr-ds` currently targets Python 3.13+.
 
 ## Included Helpers
 
@@ -16,12 +25,29 @@ General data science helpers for small data-wrangling and serialization tasks.
 - `records_to_parquet_frame`
 - `parquet_frame_to_records`
 
-The parquet helpers are aimed at a common pattern in data workflows:
+These helpers are aimed at a common pattern in data workflows:
 - start with `list[dict[str, Any]]` records
 - normalize nested JSON-like columns into strings for dataframe/parquet compatibility
 - recover those structured columns on read
 
-## Example
+## Serialization Example
+
+```python
+from pathlib import Path
+
+from dr_ds.serialization import dump_json_atomic, to_jsonable
+
+payload = to_jsonable(
+    {
+        "metrics": {"loss": 0.42},
+        "tags": {"baseline", "v1"},
+    }
+)
+
+dump_json_atomic(Path("summary.json"), payload)
+```
+
+## Parquet Example
 
 ```python
 from dr_ds.parquet import parquet_frame_to_records, records_to_parquet_frame
@@ -36,6 +62,13 @@ records = [
 frame = records_to_parquet_frame(records, json_columns={"metrics"})
 restored = parquet_frame_to_records(frame, json_columns={"metrics"})
 ```
+
+`records_to_parquet_frame` prepares records for dataframe/parquet workflows.
+It does not write parquet files directly.
+
+## License
+
+MIT
 
 ## Development
 
