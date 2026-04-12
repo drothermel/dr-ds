@@ -1,13 +1,9 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from pathlib import Path
-
-import srsly
 
 from dr_ds.serialization import (
     convert_large_ints,
-    dump_json_atomic,
     parse_jsonish,
     serialize_timestamp,
     to_jsonable,
@@ -71,12 +67,3 @@ def test_to_jsonable_handles_mixed_type_sets_deterministically() -> None:
     result = to_jsonable({1, "two", (3, 4)})
 
     assert result == ["two", 1, [3, 4]]
-
-
-def test_dump_json_atomic_writes_json_file(tmp_path: Path) -> None:
-    path = tmp_path / "payload.json"
-    payload = {"b": 2, "a": 1}
-
-    dump_json_atomic(path, payload)
-
-    assert srsly.read_json(path) == payload

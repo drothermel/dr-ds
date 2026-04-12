@@ -1,7 +1,7 @@
 # dr-ds
 
-Small, typed data science helpers for serialization and dataframe-oriented
-record normalization.
+Small, typed data science helpers for serialization, atomic file writes,
+and dataframe-oriented record normalization.
 
 ## Install
 
@@ -9,9 +9,14 @@ record normalization.
 uv add dr-ds
 ```
 
-`dr-ds` currently targets Python 3.13+.
+`dr-ds` currently targets Python 3.12+.
 
 ## Included Helpers
+
+`dr_ds.atomic_io` provides:
+- `dump_json_atomic`
+- `atomic_write_jsonl`
+- `atomic_write_parquet_records`
 
 `dr_ds.serialization` provides:
 - `serialize_timestamp`
@@ -19,7 +24,6 @@ uv add dr-ds
 - `to_jsonable`
 - `convert_large_ints`
 - `parse_jsonish`
-- `dump_json_atomic`
 
 `dr_ds.parquet` provides:
 - `records_to_parquet_frame`
@@ -30,12 +34,13 @@ These helpers are aimed at a common pattern in data workflows:
 - normalize nested JSON-like columns into strings for dataframe/parquet compatibility
 - recover those structured columns on read
 
-## Serialization Example
+## Atomic IO Example
 
 ```python
 from pathlib import Path
 
-from dr_ds.serialization import dump_json_atomic, to_jsonable
+from dr_ds.atomic_io import dump_json_atomic
+from dr_ds.serialization import to_jsonable
 
 payload = to_jsonable(
     {
