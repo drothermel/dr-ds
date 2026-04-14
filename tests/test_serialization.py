@@ -27,6 +27,12 @@ class _OpaqueValue:
         return "opaque-value"
 
 
+class _SelfReferentialValue:
+    def __init__(self) -> None:
+        self.name = "loop"
+        self.self_ref = self
+
+
 def test_to_jsonable_normalizes_nested_values() -> None:
     value = {
         "timestamp": datetime(2024, 1, 2, 3, 4, tzinfo=UTC),
@@ -101,3 +107,10 @@ def test_to_jsonable_normalizes_public_object_attributes() -> None:
 
 def test_to_jsonable_falls_back_to_string_for_opaque_objects() -> None:
     assert to_jsonable(_OpaqueValue()) == "opaque-value"
+
+
+def test_to_jsonable_replaces_recursive_object_reference() -> None:
+    assert to_jsonable(_SelfReferentialValue()) == {
+        "name": "loop",
+        "self_ref": "<recursion>",
+    }

@@ -22,37 +22,56 @@ def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def to_jsonable(value: Any) -> Any:
+def to_jsonable(value: Any, *, seen_ids: set[int] | None = None) -> Any:
     if value is None or isinstance(value, bool | int | float | str):
         return value
-    if isinstance(value, datetime):
-        return value.astimezone(timezone.utc).isoformat()
-    if isinstance(value, Mapping):
-        return {str(key): to_jsonable(nested) for key, nested in value.items()}
-    if isinstance(value, list):
-        return [to_jsonable(nested) for nested in value]
-    if isinstance(value, tuple):
-        return [to_jsonable(nested) for nested in value]
-    if isinstance(value, set):
-        items = [to_jsonable(nested) for nested in value]
-        try:
-            return sorted(items)
-        except TypeError:
-            return sorted(
-                items,
-                key=lambda item: json.dumps(item, sort_keys=True),
-            )
-    return _object_to_jsonable(value)
+    if seen_ids is None:
+        seen_ids = set()
+    value_id = id(value)
+    if value_id in seen_ids:
+        return "<recursion>"
+    seen_ids.add(value_id)
+    try:
+        if isinstance(value, datetime):
+            return value.astimezone(timezone.utc).isoformat()
+        if isinstance(value, Mapping):
+            return {
+                str(key): to_jsonable(nested, seen_ids=seen_ids)
+                for key, nested in value.items()
+            }
+        if isinstance(value, list):
+            return [to_jsonable(nested, seen_ids=seen_ids) for nested in value]
+        if isinstance(value, tuple):
+            return [to_jsonable(nested, seen_ids=seen_ids) for nested in value]
+        if isinstance(value, set):
+            items = [
+                to_jsonable(nested, seen_ids=seen_ids) for nested in value
+            ]
+            try:
+                return sorted(items)
+            except TypeError:
+                return sorted(
+                    items,
+                    key=lambda item: json.dumps(item, sort_keys=True),
+                )
+        return _object_to_jsonable(value, seen_ids=seen_ids)
+    finally:
+        seen_ids.discard(value_id)
 
 
-def _object_to_jsonable(value: Any) -> Any:
+def _object_to_jsonable(value: Any, *, seen_ids: set[int]) -> Any:
+    """Serialize object public attributes and guard against recursive references."""
     try:
         attributes = vars(value)
     except TypeError:
         return str(value)
 
     normalized_attributes = {
-        str(key): to_jsonable(nested)
+        str(key): (
+            "<recursion>"
+            if id(nested) in seen_ids
+            else to_jsonable(nested, seen_ids=seen_ids)
+        )
         for key, nested in attributes.items()
         if not str(key).startswith("_") and not callable(nested)
     }
