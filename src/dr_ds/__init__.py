@@ -1,3 +1,5 @@
+"""Expose stable shared `dr-ds` utility re-exports."""
+
 from dr_ds.atomic_io import (
     atomic_write_jsonl,
     atomic_write_parquet_records,

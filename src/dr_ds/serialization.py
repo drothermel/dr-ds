@@ -1,3 +1,5 @@
+"""Serialization helpers for normalizing loose values into stable wire formats."""
+
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -7,10 +9,17 @@ from typing import Any
 
 import srsly
 
+# Largest integer preserved as an integer before parquet-oriented coercion
+# converts it to float to avoid downstream overflow/compatibility issues.
 DEFAULT_MAX_INT = 2**31 - 1
 
 
 def serialize_timestamp(value: Any) -> str | None:
+    """Return `value` as a timestamp string suitable for serialized payloads.
+
+    Datetimes are normalized to UTC ISO 8601 strings. `None` stays `None`,
+    and every other value is stringified without additional validation.
+    """
     if value is None:
         return None
     if isinstance(value, datetime):
@@ -19,10 +28,23 @@ def serialize_timestamp(value: Any) -> str | None:
 
 
 def utc_now_iso() -> str:
+    """Return the current UTC time as an ISO 8601 string."""
     return datetime.now(timezone.utc).isoformat()
 
 
 def to_jsonable(value: Any, *, seen_ids: set[int] | None = None) -> Any:
+    """Recursively normalize values into JSON-safe Python data.
+
+    The conversion is intentionally opinionated:
+    - mappings are copied with stringified keys
+    - tuples become lists
+    - sets become deterministically ordered lists
+    - plain objects are serialized from public, non-callable attributes
+    - recursive references are replaced with the literal string
+      `"<recursion>"`
+
+    Values that cannot be meaningfully introspected fall back to `str(value)`.
+    """
     if value is None or isinstance(value, bool | int | float | str):
         return value
     if seen_ids is None:
@@ -60,7 +82,7 @@ def to_jsonable(value: Any, *, seen_ids: set[int] | None = None) -> Any:
 
 
 def _object_to_jsonable(value: Any, *, seen_ids: set[int]) -> Any:
-    """Serialize object public attributes and guard against recursive references."""
+    """Serialize plain-object public attributes with recursion protection."""
     try:
         attributes = vars(value)
     except TypeError:
@@ -81,6 +103,13 @@ def _object_to_jsonable(value: Any, *, seen_ids: set[int]) -> Any:
 
 
 def convert_large_ints(value: Any, *, max_int: int = DEFAULT_MAX_INT) -> Any:
+    """Recursively convert oversized integers to floats.
+
+    This is mainly intended for parquet/dataframe pipelines that can become
+    awkward or lossy with very large integer values. Containers preserve their
+    original shape except for tuples and sets, which keep their tuple/set
+    container types here.
+    """
     if isinstance(value, dict):
         return {
             str(key): convert_large_ints(nested, max_int=max_int)
@@ -104,6 +133,10 @@ def convert_large_ints(value: Any, *, max_int: int = DEFAULT_MAX_INT) -> Any:
 
 
 def parse_jsonish(value: Any) -> Any:
+    """Parse JSON-like strings while leaving ordinary strings untouched.
+
+    Blank strings, invalid JSON, and non-string values are returned as-is.
+    """
     if not isinstance(value, str):
         return value
     stripped = value.strip()

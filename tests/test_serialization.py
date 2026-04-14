@@ -114,3 +114,10 @@ def test_to_jsonable_replaces_recursive_object_reference() -> None:
         "name": "loop",
         "self_ref": "<recursion>",
     }
+
+
+def test_to_jsonable_replaces_recursive_container_reference() -> None:
+    value: dict[str, object] = {}
+    value["self"] = value
+
+    assert to_jsonable(value) == {"self": "<recursion>"}
