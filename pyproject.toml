@@ -48,4 +48,11 @@ dev = [
 ]
 
 [tool.ruff]
+include = [
+    "src/**/*.py",
+    "tests/**/*.py",
+]
 line-length = 79
+
+[tool.ty.src]
+include = ["src", "tests"]
