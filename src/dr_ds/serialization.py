@@ -1,3 +1,5 @@
+"""Helpers for normalizing loosely typed values into stable serialized forms."""
+
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -11,6 +13,7 @@ DEFAULT_MAX_INT = 2**31 - 1
 
 
 def serialize_timestamp(value: Any) -> str | None:
+    """Return a UTC ISO timestamp for datetimes and stringify other values."""
     if value is None:
         return None
     if isinstance(value, datetime):
@@ -19,10 +22,12 @@ def serialize_timestamp(value: Any) -> str | None:
 
 
 def utc_now_iso() -> str:
+    """Return the current UTC timestamp as an ISO 8601 string."""
     return datetime.now(timezone.utc).isoformat()
 
 
 def to_jsonable(value: Any, *, seen_ids: set[int] | None = None) -> Any:
+    """Normalize values into JSON-safe forms and replace recursive references."""
     if value is None or isinstance(value, bool | int | float | str):
         return value
     if seen_ids is None:
@@ -81,6 +86,7 @@ def _object_to_jsonable(value: Any, *, seen_ids: set[int]) -> Any:
 
 
 def convert_large_ints(value: Any, *, max_int: int = DEFAULT_MAX_INT) -> Any:
+    """Convert integers outside the parquet-safe bound to floats recursively."""
     if isinstance(value, dict):
         return {
             str(key): convert_large_ints(nested, max_int=max_int)
@@ -104,6 +110,7 @@ def convert_large_ints(value: Any, *, max_int: int = DEFAULT_MAX_INT) -> Any:
 
 
 def parse_jsonish(value: Any) -> Any:
+    """Parse JSON-like strings and leave non-JSON-looking values unchanged."""
     if not isinstance(value, str):
         return value
     stripped = value.strip()

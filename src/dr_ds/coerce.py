@@ -1,3 +1,5 @@
+"""Small coercion helpers for turning loose scalar inputs into numeric types."""
+
 from __future__ import annotations
 
 import math
@@ -6,6 +8,7 @@ Coercible = int | float | str | None
 
 
 def coerce_int(value: Coercible) -> int | None:
+    """Best-effort coerce a scalar into `int`, returning `None` on invalid input."""
     if value is None or isinstance(value, bool):
         return None
     if isinstance(value, float) and not math.isfinite(value):
@@ -17,6 +20,7 @@ def coerce_int(value: Coercible) -> int | None:
 
 
 def coerce_number(value: Coercible) -> int | float | None:
+    """Coerce a scalar into `int` or `float`, preserving integral floats as ints."""
     if value is None or isinstance(value, bool):
         return None
     if isinstance(value, float) and math.isnan(value):
@@ -39,6 +43,7 @@ def coerce_number(value: Coercible) -> int | float | None:
 
 
 def coerce_float(value: Coercible) -> float | None:
+    """Best-effort coerce a scalar into `float`, returning `None` on invalid input."""
     coerced = coerce_number(value)
     if coerced is None:
         return None
