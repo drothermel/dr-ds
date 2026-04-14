@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 import json
 from datetime import datetime, timezone
 from typing import Any
@@ -22,9 +23,11 @@ def utc_now_iso() -> str:
 
 
 def to_jsonable(value: Any) -> Any:
+    if value is None or isinstance(value, bool | int | float | str):
+        return value
     if isinstance(value, datetime):
         return value.astimezone(timezone.utc).isoformat()
-    if isinstance(value, dict):
+    if isinstance(value, Mapping):
         return {str(key): to_jsonable(nested) for key, nested in value.items()}
     if isinstance(value, list):
         return [to_jsonable(nested) for nested in value]
@@ -39,7 +42,23 @@ def to_jsonable(value: Any) -> Any:
                 items,
                 key=lambda item: json.dumps(item, sort_keys=True),
             )
-    return value
+    return _object_to_jsonable(value)
+
+
+def _object_to_jsonable(value: Any) -> Any:
+    try:
+        attributes = vars(value)
+    except TypeError:
+        return str(value)
+
+    normalized_attributes = {
+        str(key): to_jsonable(nested)
+        for key, nested in attributes.items()
+        if not str(key).startswith("_") and not callable(nested)
+    }
+    if normalized_attributes:
+        return normalized_attributes
+    return str(value)
 
 
 def convert_large_ints(value: Any, *, max_int: int = DEFAULT_MAX_INT) -> Any:

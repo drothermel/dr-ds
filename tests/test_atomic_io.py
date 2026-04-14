@@ -21,7 +21,9 @@ def test_dump_json_atomic_writes_json_file(tmp_path: Path) -> None:
     assert srsly.read_json(path) == payload
 
 
-def test_dump_json_atomic_overwrites_existing_json_file(tmp_path: Path) -> None:
+def test_dump_json_atomic_overwrites_existing_json_file(
+    tmp_path: Path,
+) -> None:
     path = tmp_path / "payload.json"
 
     dump_json_atomic(path, {"a": 1})
