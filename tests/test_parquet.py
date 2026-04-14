@@ -48,3 +48,13 @@ def test_parquet_frame_to_records_normalizes_nan_json_values_to_none() -> None:
     restored = parquet_frame_to_records(frame, json_columns={"metrics"})
 
     assert restored == [{"metrics": None, "status": "pending"}]
+
+
+def test_parquet_frame_to_records_leaves_invalid_json_strings_unchanged() -> (
+    None
+):
+    frame = pd.DataFrame([{"metrics": "not-json", "status": "pending"}])
+
+    restored = parquet_frame_to_records(frame, json_columns={"metrics"})
+
+    assert restored == [{"metrics": "not-json", "status": "pending"}]

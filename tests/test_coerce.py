@@ -117,3 +117,19 @@ def test_coerce_number_handles_string_integer_that_parses_as_float() -> None:
     assert type(coerce_number("1e2")) is int
     assert coerce_number("1.5e1") == 15
     assert type(coerce_number("1.5e1")) is int
+
+
+def test_coerce_number_preserves_negative_infinity() -> None:
+    result = coerce_number(float("-inf"))
+
+    assert isinstance(result, float)
+    assert math.isinf(result)
+    assert result < 0
+
+
+def test_coerce_float_preserves_infinity() -> None:
+    result = coerce_float(float("inf"))
+
+    assert isinstance(result, float)
+    assert math.isinf(result)
+    assert result > 0
