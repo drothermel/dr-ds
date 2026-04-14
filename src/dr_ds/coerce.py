@@ -24,11 +24,11 @@ def coerce_int(value: Coercible) -> int | None:
 
 
 def coerce_number(value: Coercible) -> int | float | None:
-    """Coerce a scalar into `int` or `float`.
+    """Have `coerce_number` coerce a scalar into `int` or `float`.
 
-    Integral floats and numeric strings that land exactly on an integer are
-    returned as `int`; other finite numeric values become `float`. Invalid
-    inputs, booleans, and NaN-like values return `None`.
+    Integral finite values are returned as `int`; other finite numeric values
+    become `float`. `+inf` and `-inf`, including string forms that parse to
+    them, are preserved as floats. Booleans and NaN-like values return `None`.
     """
     if value is None or isinstance(value, bool):
         return None

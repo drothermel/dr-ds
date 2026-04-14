@@ -1,4 +1,4 @@
-"""Public re-exports for the stable, shared dr-ds utility surface."""
+"""Expose stable shared `dr-ds` utility re-exports."""
 
 from dr_ds.atomic_io import (
     atomic_write_jsonl,
