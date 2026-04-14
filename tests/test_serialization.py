@@ -10,6 +10,29 @@ from dr_ds.serialization import (
 )
 
 
+class _UserLike:
+    def __init__(self) -> None:
+        self.id = "user-1"
+        self.username = "danielle"
+        self.created_at = datetime(2024, 1, 2, 3, 4, tzinfo=UTC)
+        self.aliases = {"owner", "maintainer"}
+        self._secret = "ignore-me"
+        self.render = lambda: "ignore-callable"
+
+
+class _OpaqueValue:
+    __slots__ = ()
+
+    def __str__(self) -> str:
+        return "opaque-value"
+
+
+class _SelfReferentialValue:
+    def __init__(self) -> None:
+        self.name = "loop"
+        self.self_ref = self
+
+
 def test_to_jsonable_normalizes_nested_values() -> None:
     value = {
         "timestamp": datetime(2024, 1, 2, 3, 4, tzinfo=UTC),
@@ -67,3 +90,27 @@ def test_to_jsonable_handles_mixed_type_sets_deterministically() -> None:
     result = to_jsonable({1, "two", (3, 4)})
 
     assert result == ["two", 1, [3, 4]]
+
+
+def test_to_jsonable_normalizes_public_object_attributes() -> None:
+    result = to_jsonable({"user": _UserLike()})
+
+    assert result == {
+        "user": {
+            "aliases": ["maintainer", "owner"],
+            "created_at": "2024-01-02T03:04:00+00:00",
+            "id": "user-1",
+            "username": "danielle",
+        }
+    }
+
+
+def test_to_jsonable_falls_back_to_string_for_opaque_objects() -> None:
+    assert to_jsonable(_OpaqueValue()) == "opaque-value"
+
+
+def test_to_jsonable_replaces_recursive_object_reference() -> None:
+    assert to_jsonable(_SelfReferentialValue()) == {
+        "name": "loop",
+        "self_ref": "<recursion>",
+    }

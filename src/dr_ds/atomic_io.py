@@ -64,7 +64,8 @@ def atomic_write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
         ) as handle:
             for record in records:
                 handle.write(
-                    srsly.json_dumps(to_jsonable(record), sort_keys=True) + "\n"
+                    srsly.json_dumps(to_jsonable(record), sort_keys=True)
+                    + "\n"
                 )
             handle.flush()
             os.fsync(handle.fileno())

@@ -31,6 +31,7 @@ uv add dr-ds
 
 These helpers are aimed at a common pattern in data workflows:
 - start with `list[dict[str, Any]]` records
+- normalize nested containers and plain Python objects into JSON-safe values
 - normalize nested JSON-like columns into strings for dataframe/parquet compatibility
 - recover those structured columns on read
 
@@ -46,6 +47,7 @@ payload = to_jsonable(
     {
         "metrics": {"loss": 0.42},
         "tags": {"baseline", "v1"},
+        "owner": {"name": "baseline-bot", "id": 7},
     }
 )
 
