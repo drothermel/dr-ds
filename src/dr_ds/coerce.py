@@ -8,7 +8,11 @@ Coercible = int | float | str | None
 
 
 def coerce_int(value: Coercible) -> int | None:
-    """Best-effort coerce a scalar into `int`, returning `None` on invalid input."""
+    """Best-effort coerce a scalar into `int`.
+
+    `None`, booleans, non-finite floats, and values that fail integer
+    conversion return `None` instead of raising.
+    """
     if value is None or isinstance(value, bool):
         return None
     if isinstance(value, float) and not math.isfinite(value):
@@ -20,7 +24,12 @@ def coerce_int(value: Coercible) -> int | None:
 
 
 def coerce_number(value: Coercible) -> int | float | None:
-    """Coerce a scalar into `int` or `float`, preserving integral floats as ints."""
+    """Coerce a scalar into `int` or `float`.
+
+    Integral floats and numeric strings that land exactly on an integer are
+    returned as `int`; other finite numeric values become `float`. Invalid
+    inputs, booleans, and NaN-like values return `None`.
+    """
     if value is None or isinstance(value, bool):
         return None
     if isinstance(value, float) and math.isnan(value):
@@ -43,7 +52,7 @@ def coerce_number(value: Coercible) -> int | float | None:
 
 
 def coerce_float(value: Coercible) -> float | None:
-    """Best-effort coerce a scalar into `float`, returning `None` on invalid input."""
+    """Best-effort coerce a scalar into `float` via `coerce_number`."""
     coerced = coerce_number(value)
     if coerced is None:
         return None

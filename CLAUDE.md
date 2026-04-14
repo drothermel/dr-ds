@@ -35,13 +35,27 @@ docstrings as part of the public API contract.
   signature unless runtime behavior differs from the type hint.
 - If behavior is intentionally lossy or opinionated, say so explicitly.
 
-## Pre-commit checks
+## Verification Workflow
 
-Run these before committing:
+### Local iteration
+
+Run the smallest targeted test command that covers the code you changed.
+
+### Before commit
+
+Run the full repo checks:
 
 ```bash
 uv run ruff format .
 uv run ruff check .
 uv run ty check
 uv run pytest
+```
+
+### Before publish
+
+Make sure the package still builds cleanly:
+
+```bash
+uv build
 ```

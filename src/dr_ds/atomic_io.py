@@ -1,4 +1,4 @@
-"""Atomic file-writing helpers for JSON, JSONL, and parquet-oriented records."""
+"""Atomic file-writing helpers for JSON, JSONL, and parquet-backed records."""
 
 from __future__ import annotations
 
@@ -24,7 +24,11 @@ def _fsync_parent_dir(path: Path) -> None:
 
 
 def dump_json_atomic(path: Path, payload: dict[str, Any]) -> None:
-    """Write one JSON payload atomically, replacing any existing file."""
+    """Write one JSON payload atomically, replacing any existing file.
+
+    The write is performed through a sibling temporary file plus `os.replace`,
+    then the parent directory is fsynced so the rename is durably recorded.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp_name: str | None = None
     replaced = False
@@ -54,7 +58,12 @@ def dump_json_atomic(path: Path, payload: dict[str, Any]) -> None:
 
 
 def atomic_write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
-    """Write JSONL records atomically after normalizing each row to JSON-safe data."""
+    """Write JSONL records atomically after JSON-safe row normalization.
+
+    Each record is normalized through `to_jsonable` before serialization so
+    callers can pass plain objects and nested containers without pre-flattening
+    them themselves.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp_name: str | None = None
     replaced = False
@@ -93,7 +102,12 @@ def atomic_write_parquet_records(
     *,
     json_columns: set[str],
 ) -> None:
-    """Write record dictionaries to parquet atomically via the dataframe adapter."""
+    """Write record dictionaries to parquet atomically via the dataframe adapter.
+
+    JSON-designated columns are normalized through `records_to_parquet_frame`
+    before the parquet file is written, then the final file is atomically
+    swapped into place.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp_name: str | None = None
     replaced = False
